@@ -5,7 +5,7 @@ from pyrogram.errors import FloodWait, RPCError
 from PIL import Image
 from threading import RLock
 from bot import AS_DOCUMENT, AS_DOC_USERS, AS_MEDIA_USERS, EXTENSION_FILTER, \
-                 app, LEECH_LOG, BOT_PM, tgBotMaxFileSize, premium_session, CAPTION_FONT, PRE_DICT, LEECH_DICT, LOG_LEECH, CAP_DICT
+                app, LEECH_LOG, BOT_PM, tgBotMaxFileSize, premium_session, CAPTION_FONT, PRE_DICT, LEECH_DICT, LOG_LEECH, CAP_DICT
 from bot.helper.ext_utils.fs_utils import take_ss, get_media_info, get_media_streams, get_path_size, clean_unwanted
 from bot.helper.ext_utils.bot_utils import get_readable_file_size
 from pyrogram.types import Message
@@ -73,27 +73,35 @@ class TgUploader:
         self.__listener.onUploadComplete(None, size, self.__msgs_dict, self.__total_files, self.__corrupted, self.name)
 
     def __upload_file(self, up_path, file_, dirpath):
-      	        besic=file_
-        if len(file_)>60:	
-         ext=file_.split('.')[-1]	
-         file_='.'.join(file_.split('.')[:-1])	
-         file_=file_.replace('_','.')	
-         if len(file_)>(59-len(ext)):	
-                file_=file_[:(59-len(ext))]	
-         file_=file_+'.'+ext	
-        print('saef ' +file_)	
-        new_path = ospath.join(dirpath, file_)	
-        osrename(up_path, new_path)	
-        up_path = new_path
-        if CUSTOM_FILENAME is not None:
-            cap_mono = f"{CUSTOM_FILENAME} <b>{file_}\n\n┏━━━━•❅•°•❈•°•❅•━━━━┓\n👑ᴍᴏᷱᴠͤɪᴇ ᴄʟͣᴜͬʙͤ ғᐃᴍɪʟʏ👑✰\n┗━━━━•❅•°•❈•°•❅•━━━━┛\n🎭Proudly Presented By🎭\n@MovieClubFamily</b>"
-            file_ = f"{CUSTOM_FILENAME} {file_}"
-            new_path = ospath.join(dirpath, file_)
-            osrename(up_path, new_path)
-            up_path = new_path
+        fsize = ospath.getsize(up_path)
+        if fsize > 2097152000:
+            client = premium_session
         else:
-            cap_mono = f"<b>{besic}\n\n┏━━━━•❅•°•❈•°•❅•━━━━┓\n👑ᴍᴏᷱᴠͤɪᴇ ᴄʟͣᴜͬʙͤ ғᐃᴍɪʟʏ👑✰\n┗━━━━•❅•°•❈•°•❅•━━━━┛\n🎭Proudly Presented By🎭\n@MovieClubFamily</b>"
-        # if CUSTOM_FILENAME is not None and PRENAME_X == 0 or prefix == "":
+            client = app
+        prefix = PRE_DICT.get(self.__listener.message.from_user.id, "")
+        PRENAME_X = prefix
+        caption = CAP_DICT.get(self.__listener.message.from_user.id, "")
+        CAPTION_X = caption
+        if len(PRENAME_X) != 0:
+            if file_.startswith('www'):
+                file_ = ' '.join(file_.split()[1:])
+                file_ = f"{PRENAME_X}" + file_.strip('-').strip('_')
+                cap_mono = f"<{CAPTION_FONT}>{file_}</{CAPTION_FONT}>"
+                cap = f"\n\n{CAPTION_X}\n\n"
+                new_path = ospath.join(dirpath, file_)
+                osrename(up_path, new_path)
+                up_path = new_path
+            else:
+                file_ = f"{PRENAME_X}" + " " + file_.strip('-').strip('_')
+                cap_mono = f"<{CAPTION_FONT}>{file_}</{CAPTION_FONT}>"
+                cap = f"\n\n{CAPTION_X}\n\n"
+                new_path = ospath.join(dirpath, file_)
+                osrename(up_path, new_path)
+                up_path = new_path
+        else:
+            cap_mono = f"<{CAPTION_FONT}>{file_}</{CAPTION_FONT}>"
+            cap = f"\n\n{CAPTION_X}\n\n"
+        # if CUSTOM_FILENAME is not None and prefix == '':
         #     cap_mono = f"<{CAPTION_FONT}>{CUSTOM_FILENAME} {file_}</{CAPTION_FONT}>"
         #     cap = f"\n\n{CAPTION_X}\n\n"
         #     file_ = f"{CUSTOM_FILENAME} {file_}"
@@ -159,6 +167,7 @@ class TgUploader:
                                     app.copy_message(chat_id=LEECH_X, from_chat_id=self.__sent_msg.chat.id, message_id=self.__sent_msg.id)
                                 except Exception as err:
                                     LOGGER.error(f"Failed To Send Video in dump:\n{err}")
+
                     else:
                         self.__sent_msg = self.__sent_msg.reply_video(video=up_path,
                                                                       quote=True,
@@ -214,6 +223,7 @@ class TgUploader:
                                 app.copy_message(chat_id=self.__user_id, from_chat_id=self.__sent_msg.chat.id, message_id=self.__sent_msg.id)
                             except Exception as err:
                                 LOGGER.error(f"Failed To Send Audio in PM:\n{err}")
+
                 elif file_.upper().endswith(IMAGE_SUFFIXES):
                     if len(LEECH_LOG) != 0:
                         for leechchat in self.__leech_log:
