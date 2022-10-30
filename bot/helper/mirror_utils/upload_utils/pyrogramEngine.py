@@ -73,32 +73,26 @@ class TgUploader:
         self.__listener.onUploadComplete(None, size, self.__msgs_dict, self.__total_files, self.__corrupted, self.name)
 
     def __upload_file(self, up_path, file_, dirpath):
-
         fsize = ospath.getsize(up_path)
         if fsize > 2097152000:
             client = premium_session
         else:
             client = app
         prefix = PRE_DICT.get(self.__listener.message.from_user.id, "")
+        PRENAME_X = prefix
         caption = CAP_DICT.get(self.__listener.message.from_user.id, "")
         CAPTION_X = caption
-        besic=file_
-
-                if len(file_)>60:	
-                ext=file_.split('.')[-1]	
-                file_ = '.'.join(file_.split('.')[:-1])
-                file_=file_.replace('_','.')	
-                if len(file_)>(59-len(ext)):	
-                file_=file_[:(59-len(ext))]	
-                file_=file_+'.'+ext	
-                print('saef ' +file_)
-                  
+        if len(PRENAME_X) != 0:
+            if file_.startswith('www'):
+                file_ = ' '.join(file_.split()[1:])
+                file_ = f"{PRENAME_X}" + file_.strip('-').strip('.')
                 cap_mono = f"<b>{besic}\n\n┏━━━━•❅•°•❈•°•❅•━━━━┓\n👑ᴍᴏᷱᴠͤɪᴇ ᴄʟͣᴜͬʙͤ ғᐃᴍɪʟʏ👑✰\n┗━━━━•❅•°•❈•°•❅•━━━━┛\n🎭Proudly Presented By🎭\n@MovieClubFamily</b>"
                 cap = f"\n\n{CAPTION_X}\n\n"
                 new_path = ospath.join(dirpath, file_)
                 osrename(up_path, new_path)
                 up_path = new_path
             else:
+                file_ = f"{PRENAME_X}" + " " + file_.strip('-').strip('.')
                 cap_mono = f"<b>{besic}\n\n┏━━━━•❅•°•❈•°•❅•━━━━┓\n👑ᴍᴏᷱᴠͤɪᴇ ᴄʟͣᴜͬʙͤ ғᐃᴍɪʟʏ👑✰\n┗━━━━•❅•°•❈•°•❅•━━━━┛\n🎭Proudly Presented By🎭\n@MovieClubFamily</b>"
                 cap = f"\n\n{CAPTION_X}\n\n"
                 new_path = ospath.join(dirpath, file_)
